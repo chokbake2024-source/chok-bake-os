@@ -164,9 +164,18 @@ Si tenías datos **pinned** en el webhook para probar, hacé **Unpin** antes de 
 
 ---
 
-## Paso 8 — Correr la migración
+## Paso 8 — Correr las migraciones, en este orden
 
-Ahora sí: abrí `docs/migracion-04-calendario.sql`, llená los dos secretos del bloque 2 (la **Production URL** y la **llave** del Paso 2) y corrélo en el SQL Editor de Supabase.
+**8a.** Abrí `docs/migracion-04a-secretos.sql`. Reemplazá los dos valores del bloque `declare`:
+
+- la **Production URL** del nodo Webhook (dice `/webhook/`, no `/webhook-test/`)
+- la **llave** del credential Header Auth del Paso 2
+
+Pegalo en el SQL Editor y Run. Al final te muestra las dos filas guardadas: la URL se ve, la llave sale tapada. Si no ves las dos filas, no sigas.
+
+**8b.** Pegá `docs/migracion-04-calendario.sql` completo y Run. Este no se edita.
+
+> ⚠️ **El editor de Supabase corre cada script en una sola transacción.** Si una línea falla, se revierte *todo* el archivo — incluidas las extensiones. Síntoma clásico: corrés la migración, sale un error al final, y después `net._http_response does not exist` porque `pg_net` también se revirtió.
 
 ---
 

@@ -1,9 +1,8 @@
 -- ═══════════════════════════════════════════════════════════
 -- MIGRACIÓN 04 — Aviso al calendario (Fase D)
 --
--- ⚠️ ANTES DE CORRER: hay que llenar los dos secretos del bloque 2.
---    Leé docs/fase-d-n8n.md primero — necesitás la URL del webhook de
---    n8n y una llave inventada por vos.
+-- ⚠️ CORRER ANTES: docs/migracion-04a-secretos.sql
+--    Este archivo NO lleva secretos y no hay que editarlo. Pegalo y Run.
 --
 -- Qué hace: cuando entra un pedido, Postgres manda un POST a n8n con un
 -- JSON ya masticado (fechas, colores y resumen calculados acá), y n8n
@@ -14,38 +13,19 @@
 create extension if not exists pg_net;
 create extension if not exists supabase_vault;
 
--- ─── 2. Secretos en Vault ───────────────────────────────────
--- NUNCA inline en la función: en Bianco eso obligó a re-pegar el secreto
--- en cada edición y una vez rompió el header con un carácter raro.
+-- ─── 2. Los secretos ya deben existir ───────────────────────
+-- Viven en Vault, nunca inline en la función: en Bianco eso obligó a
+-- re-pegar el secreto en cada edición y una vez rompió el header con un
+-- carácter raro.
 --
--- 👉 Reemplazá los dos valores de abajo y borrá este comentario.
-
--- Idempotente: si el secreto ya existe lo actualiza, no revienta por
--- nombre duplicado. Así podés correr la migración las veces que quieras.
+-- Ojo: el editor de Supabase corre el script en UNA transacción. Si esto
+-- falla, se revierte todo el archivo — incluida la extensión de arriba.
 do $$
-declare
-  v_url    text := 'https://TU-INSTANCIA.app.n8n.cloud/webhook/chok-pedidos';
-  v_secret text := 'PEGA-AQUI-UNA-LLAVE-LARGA-Y-ALEATORIA';
-  v_id     uuid;
 begin
-  if v_url like '%TU-INSTANCIA%' or v_secret like 'PEGA-AQUI%' then
-    raise exception 'Llená la URL del webhook y la llave antes de correr esta migración';
-  end if;
-
-  select id into v_id from vault.secrets where name = 'n8n_chok_url';
-  if v_id is null then
-    perform vault.create_secret(v_url, 'n8n_chok_url',
-      'Webhook de n8n que crea los eventos de calendario');
-  else
-    perform vault.update_secret(v_id, v_url);
-  end if;
-
-  select id into v_id from vault.secrets where name = 'n8n_chok_secret';
-  if v_id is null then
-    perform vault.create_secret(v_secret, 'n8n_chok_secret',
-      'Header Auth del webhook de n8n');
-  else
-    perform vault.update_secret(v_id, v_secret);
+  if not exists (select 1 from vault.decrypted_secrets where name = 'n8n_chok_url')
+  or not exists (select 1 from vault.decrypted_secrets where name = 'n8n_chok_secret')
+  then
+    raise exception 'Faltan los secretos. Corré primero docs/migracion-04a-secretos.sql';
   end if;
 end $$;
 
