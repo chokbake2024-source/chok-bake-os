@@ -6,7 +6,13 @@
       "WebFetch(domain:bianco-os-theta.vercel.app)",
       "Bash(npm -v)",
       "Bash(git --version)",
-      "Bash(npx --yes create-next-app@latest . --ts --tailwind --app --no-src-dir --eslint --import-alias \"@/*\" --use-npm --turbopack --yes)"
+      "Bash(npx --yes create-next-app@latest . --ts --tailwind --app --no-src-dir --eslint --import-alias \"@/*\" --use-npm --turbopack --yes)",
+      "Read(//c/Users/maick/AppData/Roaming/Claude/local-agent-mode-sessions/skills-plugin/7ec13fed-d6b0-4ed6-b1d5-14a56a5c3180/f9692dfc-29f3-46f9-9da4-ab6bb51b9065/skills/canvas-design/**)",
+      "Read(//c/Users/maick/AppData/Roaming/Claude/local-agent-mode-sessions/skills-plugin/7ec13fed-d6b0-4ed6-b1d5-14a56a5c3180/f9692dfc-29f3-46f9-9da4-ab6bb51b9065/skills/canvas-design/canvas-fonts/**)",
+      "Bash(python -c \"import reportlab, PIL; print\\('reportlab', reportlab.Version\\); print\\('pillow ok'\\)\")",
+      "Bash(python -c \"import PIL; print\\('pillow', PIL.__version__\\)\")",
+      "Bash(python -c \"import cairosvg; print\\('cairosvg ok'\\)\")",
+      "Bash(pip --version)"
     ]
   }
 }

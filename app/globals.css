@@ -1,22 +1,35 @@
 @import "tailwindcss";
 
-/* Paleta de marca Chok Bake — tomada del prototipo aprobado */
+/* Paleta ESTRATOS — mineral, no confite.
+   Cuatro tonos y un carbón. Ninguno de más. */
 @theme {
-  --color-rojo: #75132c;
-  --color-rojo-d: #5a0f22;
-  --color-amarillo: #ffe7bf;
-  --color-rosado: #f9cfe3;
-  --color-rosado-d: #f0b0cc;
-  --color-blanco: #fff8f0;
-  --color-texto: #3a1a24;
-  --color-verde: #25d366;
+  --color-hueso: #ede6da;
+  --color-perga: #f6f1e8;
+  --color-vino: #5a1226;
+  --color-vino-m: #8c2740;
+  --color-rosa: #c49da0;
+  --color-laton: #b08d57;
+  --color-carbon: #2e2a28;
+  --color-verde: #1f7a4c;
 
-  --font-display: var(--font-playfair), serif;
+  --font-display: var(--font-italiana), serif;
   --font-sans: var(--font-dm-sans), system-ui, sans-serif;
+  --font-mono: var(--font-dm-mono), ui-monospace, monospace;
+  --font-serif: var(--font-crimson), Georgia, serif;
 }
 
 body {
-  background: var(--color-amarillo);
-  color: var(--color-texto);
+  background: var(--color-hueso);
+  color: var(--color-carbon);
   font-family: var(--font-sans);
+}
+
+/* Rótulo clínico: versalitas monoespaciadas con tracking generoso.
+   Es la voz de las anotaciones de la lámina. */
+.rotulo {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 0.66rem;
+  color: var(--color-laton);
 }
