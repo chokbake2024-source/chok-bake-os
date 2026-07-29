@@ -50,11 +50,32 @@ El nodo te muestra **dos URLs**: *Test URL* y *Production URL*. La que va en Vau
 
 El webhook de n8n envuelve el cuerpo bajo `$json.body`. Sin este nodo, todos los demás tendrían que escribir `$json.body.cliente` en vez de `$json.cliente`.
 
-Agregá un nodo **Code** justo después del webhook, modo *Run Once for All Items*:
+Agregá un nodo **Code** justo después del webhook, con **Language = JavaScript** y modo *Run Once for All Items*:
 
 ```javascript
 return $input.all().map(i => ({ json: i.json.body }));
 ```
+
+> ⚠️ Si el nodo te quedó en **Python**, cambiale el idioma a JavaScript en el desplegable *Language*. Si preferís dejarlo en Python, el equivalente es:
+> ```python
+> return [{"json": item.json["body"]} for item in _input.all()]
+> ```
+
+---
+
+## Cómo se conectan los nodos
+
+Las dos ramas salen **del nodo Code**, en paralelo:
+
+```
+Webhook → Code ─┬─→ Create an event    (entrega · siempre)
+                │
+                └─→ If ─[true]─→ Create an event1   (producción)
+```
+
+**Por qué en paralelo y no en cadena.** Después de un nodo de Google Calendar, `$json` deja de ser tu pedido y pasa a ser la respuesta de la API de Google. Si colgaras el `If` detrás del primer evento, `{{ $json.crear_produccion }}` llegaría vacío y nunca se crearía el evento de producción.
+
+Colgando las dos ramas del Code, las dos reciben el payload aplanado y todas las expresiones `{{ $json.campo }}` funcionan igual en los dos nodos de calendario.
 
 ---
 
@@ -120,7 +141,7 @@ Nodo **If**:
 
 ## Paso 6 — Nodo 5: Google Calendar (producción)
 
-Colgado de la salida **true** del IF. Igual al Nodo 3 pero:
+Colgado de la salida **true** del IF (que a su vez cuelga del Code, no del primer evento — ver *Cómo se conectan los nodos*). Igual al Nodo 3 pero:
 
 | Campo | Valor |
 |---|---|
@@ -180,6 +201,8 @@ Y mirá el calendario: el evento debe aparecer en menos de 30 segundos, en color
 | Nada en `net._http_response` | `pg_net` no quedó habilitada, o el trigger no existe |
 | Evento creado sin datos | Falta el nodo Code que aplana `$json.body` |
 | Evento con $0 y sin productos | El trigger no quedó `DEFERRABLE INITIALLY DEFERRED` |
+| El evento de producción nunca se crea | El `If` está colgado del nodo de calendario en vez del Code, así que `crear_produccion` llega vacío |
+| `Llená la URL del webhook y la llave…` | Es el guardián de la migración: faltan los placeholders de las líneas 27 y 28 |
 | `Invalid color id value` | Tecleaste el `=` en la expresión del Color ID |
 | Eventos duplicados | Cada *Execute* de prueba deja rastro. Limpiá el calendario entre intentos. |
 
