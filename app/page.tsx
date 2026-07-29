@@ -1,26 +1,6 @@
 import Link from "next/link";
 import { SERVICIOS, PUNTO_RECOGIDA, CIUDAD, fmt } from "./lib/negocio";
-
-/** Corte transversal en miniatura: el mismo gesto de la lámina Estratos. */
-function Corte({ bandas }: { bandas: [string, number][] }) {
-  const total = bandas.reduce((s, b) => s + b[1], 0);
-  let acum = 0;
-  const stops = bandas
-    .map(([color, peso]) => {
-      const desde = (acum / total) * 100;
-      acum += peso;
-      const hasta = (acum / total) * 100;
-      return `${color} ${desde}% ${hasta}%`;
-    })
-    .join(", ");
-  return (
-    <span
-      aria-hidden
-      className="block h-11 w-11 shrink-0 rounded-full ring-1 ring-vino/25"
-      style={{ backgroundImage: `linear-gradient(to bottom, ${stops})` }}
-    />
-  );
-}
+import { Corte } from "./lib/ui";
 
 const CORTES: Record<string, [string, number][]> = {
   cuchareables: [
