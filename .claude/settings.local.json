@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:pedidoschok.netlify.app)",
+      "Bash(cd \"C:/Users/maick/bianco-os\" && ls -la && echo \"--- APP ---\" && find app -type f 2>/dev/null | head -60 && echo \"--- SQL/SUPABASE ---\" && find . -path ./node_modules -prune -o -name \"*.sql\" -print 2>/dev/null | head -30)",
+      "WebFetch(domain:bianco-os-theta.vercel.app)",
+      "Bash(npm -v)",
+      "Bash(git --version)",
+      "Bash(npx --yes create-next-app@latest . --ts --tailwind --app --no-src-dir --eslint --import-alias \"@/*\" --use-npm --turbopack --yes)"
+    ]
+  }
+}
