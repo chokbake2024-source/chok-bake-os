@@ -16,7 +16,15 @@ update reglas_servicio set cupo_unidades_dia = 30   where tipo = 'cuchareable';
 update reglas_servicio set cupo_unidades_dia = null where tipo in ('mesa_fria','torta');
 
 -- La vista pública tiene que exponerlo para que el formulario avise antes de enviar.
-create or replace view reglas_publicas as
+--
+-- Va DROP + CREATE, no CREATE OR REPLACE: reemplazar una vista solo admite
+-- columnas nuevas al final, y agregar cupo_unidades_dia en el medio da
+-- 42P16 ("cannot change name of view column"). Dropear y recrear también
+-- deja el archivo a salvo de futuros reordenamientos.
+-- Nadie depende de esta vista salvo el formulario, que la lee por nombre.
+drop view if exists reglas_publicas;
+
+create view reglas_publicas as
   select tipo, anticipacion_minutos, cupo_dia, cupo_unidades_dia, minimo_unidades,
          requiere_comprobante, porcentaje_anticipo, hora_min, hora_max
   from reglas_servicio;
