@@ -4,15 +4,19 @@ import { useEffect, useMemo, useState } from "react";
 import { fmt, PUNTO_RECOGIDA } from "../lib/negocio";
 import {
   cargarCatalogo,
+  consultarDisponibilidad,
   crearPedido,
   fechaMinimaISO,
   linkWhatsApp,
   precioLinea,
   totalCarrito,
+  totalUnidades,
   type DatosEntrega,
+  type Disponibilidad,
 } from "../lib/pedido";
 import type { Extra, Linea, Producto, Reglas, Entrega } from "../lib/tipos";
 import {
+  AvisoFecha,
   Cabecera,
   Campo,
   Exito,
@@ -51,6 +55,7 @@ export default function Cuchareables() {
   const [metodoPago, setMetodoPago] = useState("");
   const [notas, setNotas] = useState("");
 
+  const [dispo, setDispo] = useState<Disponibilidad | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [err, setErr] = useState("");
   const [ok, setOk] = useState<{ id: string; href: string } | null>(null);
@@ -68,6 +73,11 @@ export default function Cuchareables() {
     if (reglas && !fecha) setFecha(fechaMinimaISO(reglas.anticipacion_minutos, reglas.hora_max));
   }, [reglas, fecha]);
 
+  useEffect(() => {
+    if (!fecha) return setDispo(null);
+    consultarDisponibilidad(fecha, "cuchareable").then(setDispo);
+  }, [fecha]);
+
   const prod = productos.find((p) => p.id === prodId) ?? null;
   const delCat = productos.filter((p) => p.categoria === cat);
   const grupoTop = cat === "vasca" ? "topping_vasca" : "topping_brownie";
@@ -82,6 +92,13 @@ export default function Cuchareables() {
       .map((id) => extras.find((e) => e.id === id))
       .filter((e): e is Extra => Boolean(e));
   }, [cat, adiciones, slots, extras]);
+
+  const unidadesPedidas = totalUnidades(lineas);
+  const fechaSirve =
+    !dispo ||
+    (!dispo.bloqueado &&
+      (dispo.cupos === null || dispo.cupos > 0) &&
+      (dispo.unidades === null || unidadesPedidas <= dispo.unidades));
 
   const precioUnit = prod ? precioLinea(prod, seleccionados) : 0;
   const listo =
@@ -454,6 +471,17 @@ export default function Cuchareables() {
               </Campo>
             </div>
           </div>
+
+          {dispo && (
+            <AvisoFecha
+              bloqueado={dispo.bloqueado}
+              motivo={dispo.motivo}
+              cupos={dispo.cupos}
+              unidades={dispo.unidades}
+              unidadesPedidas={unidadesPedidas}
+            />
+          )}
+
           <Campo label="Método de pago" hint="Los cuchareables se pagan al recibir.">
             <select
               className={inputCls}
@@ -484,10 +512,10 @@ export default function Cuchareables() {
           <button
             type="button"
             onClick={enviar}
-            disabled={enviando}
-            className="mt-5 w-full border border-vino bg-vino px-5 py-3.5 text-[0.9rem] font-medium text-hueso transition hover:bg-vino-m disabled:opacity-50"
+            disabled={enviando || !fechaSirve}
+            className="mt-5 w-full border border-vino bg-vino px-5 py-3.5 text-[0.9rem] font-medium text-hueso transition hover:bg-vino-m disabled:opacity-40"
           >
-            {enviando ? "Enviando…" : "Confirmar pedido"}
+            {enviando ? "Enviando…" : !fechaSirve ? "Elegí otra fecha" : "Confirmar pedido"}
           </button>
         </>
       )}

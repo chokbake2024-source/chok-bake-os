@@ -4,15 +4,19 @@ import { useEffect, useMemo, useState } from "react";
 import { fmt, PAGO, PUNTO_RECOGIDA } from "../lib/negocio";
 import {
   cargarCatalogo,
+  consultarDisponibilidad,
   crearPedido,
   fechaMinimaISO,
   linkWhatsApp,
   subirComprobante,
   totalCarrito,
+  totalUnidades,
   type DatosEntrega,
+  type Disponibilidad,
 } from "../lib/pedido";
 import type { Linea, Producto, Reglas, Entrega } from "../lib/tipos";
 import {
+  AvisoFecha,
   Cabecera,
   Campo,
   Exito,
@@ -39,6 +43,7 @@ export default function MesasFrias() {
   const [notas, setNotas] = useState("");
   const [comprobante, setComprobante] = useState<File | null>(null);
 
+  const [dispo, setDispo] = useState<Disponibilidad | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [err, setErr] = useState("");
   const [ok, setOk] = useState<{ id: string; href: string } | null>(null);
@@ -57,6 +62,11 @@ export default function MesasFrias() {
     if (reglas && !fecha) setFecha(fechaMinimaISO(reglas.anticipacion_minutos));
   }, [reglas, fecha]);
 
+  useEffect(() => {
+    if (!fecha) return setDispo(null);
+    consultarDisponibilidad(fecha, "mesa_fria").then(setDispo);
+  }, [fecha]);
+
   const lineas: Linea[] = useMemo(
     () =>
       productos
@@ -74,6 +84,13 @@ export default function MesasFrias() {
   const total = totalCarrito(lineas);
   const anticipo = Math.round((total * (reglas?.porcentaje_anticipo ?? 50)) / 100);
   const bajoMinimo = lineas.filter((l) => l.cantidad < MINIMO);
+
+  const unidadesPedidas = totalUnidades(lineas);
+  const fechaSirve =
+    !dispo ||
+    (!dispo.bloqueado &&
+      (dispo.cupos === null || dispo.cupos > 0) &&
+      (dispo.unidades === null || unidadesPedidas <= dispo.unidades));
 
   function ajustar(id: string, delta: number) {
     setCant((c) => {
@@ -337,6 +354,17 @@ export default function MesasFrias() {
               </Campo>
             </div>
           </div>
+
+          {dispo && (
+            <AvisoFecha
+              bloqueado={dispo.bloqueado}
+              motivo={dispo.motivo}
+              cupos={dispo.cupos}
+              unidades={dispo.unidades}
+              unidadesPedidas={unidadesPedidas}
+            />
+          )}
+
           <Campo label="Método de pago">
             <select
               className={inputCls}
@@ -366,10 +394,10 @@ export default function MesasFrias() {
           <button
             type="button"
             onClick={enviar}
-            disabled={enviando}
-            className="mt-5 w-full border border-vino bg-vino px-5 py-3.5 text-[0.9rem] font-medium text-hueso transition hover:bg-vino-m disabled:opacity-50"
+            disabled={enviando || !fechaSirve}
+            className="mt-5 w-full border border-vino bg-vino px-5 py-3.5 text-[0.9rem] font-medium text-hueso transition hover:bg-vino-m disabled:opacity-40"
           >
-            {enviando ? "Enviando…" : "Confirmar pedido"}
+            {enviando ? "Enviando…" : !fechaSirve ? "Elegí otra fecha" : "Confirmar pedido"}
           </button>
         </>
       )}

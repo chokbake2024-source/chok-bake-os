@@ -17,6 +17,25 @@ export async function cargarCatalogo(tipo: string) {
   };
 }
 
+export type Disponibilidad = {
+  bloqueado: boolean;
+  motivo: string | null;
+  cupos: number | null; // null = sin tope
+  unidades: number | null;
+};
+
+/** Una sola consulta le dice al formulario si la fecha sirve.
+ *  Antes el cliente llenaba todo y se enteraba al enviar. */
+export async function consultarDisponibilidad(fecha: string, tipo: string) {
+  const { data, error } = await supabase.rpc("disponibilidad", {
+    p_fecha: fecha,
+    p_tipo: tipo,
+  });
+  if (error) return null;
+  const fila = Array.isArray(data) ? data[0] : data;
+  return (fila ?? null) as Disponibilidad | null;
+}
+
 export function precioLinea(producto: Producto, extras: Extra[]) {
   return producto.precio + extras.reduce((s, e) => s + e.precio, 0);
 }
@@ -67,6 +86,7 @@ const MENSAJES: Record<string, string> = {
   CUPO_LLENO: "Ese día ya está lleno. Elegí otra fecha.",
   CUPO_UNIDADES_LLENO: "Ese día ya no queda capacidad de producción. Elegí otra fecha.",
   MINIMO_UNIDADES: "No alcanzás el mínimo de unidades por producto.",
+  DIA_BLOQUEADO: "Ese día está cerrado",
   TOPPINGS_INCOMPLETOS: "Falta elegir todos los toppings.",
   PRODUCTO_INVALIDO: "Uno de los productos ya no está disponible.",
   EXTRA_INVALIDO: "Una de las adiciones ya no está disponible.",

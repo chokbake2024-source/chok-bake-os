@@ -139,6 +139,57 @@ export function Cabecera({ seccion }: { seccion: string }) {
   );
 }
 
+/** Aviso de disponibilidad de la fecha elegida.
+ *  Devuelve null cuando no hay nada que decir: si el día está bien y hay
+ *  cupo de sobra, no vale la pena gastar atención del cliente. */
+export function AvisoFecha({
+  bloqueado,
+  motivo,
+  cupos,
+  unidades,
+  unidadesPedidas,
+}: {
+  bloqueado: boolean;
+  motivo: string | null;
+  cupos: number | null;
+  unidades: number | null;
+  unidadesPedidas: number;
+}) {
+  let tono: "malo" | "aviso" | null = null;
+  let texto = "";
+
+  if (bloqueado) {
+    tono = "malo";
+    texto = `Ese día está cerrado: ${motivo}. Elegí otra fecha.`;
+  } else if (cupos !== null && cupos <= 0) {
+    tono = "malo";
+    texto = "Ese día ya está lleno. Elegí otra fecha.";
+  } else if (unidades !== null && unidadesPedidas > unidades) {
+    tono = "malo";
+    texto = `Ese día solo quedan ${unidades} unidades disponibles y tu pedido lleva ${unidadesPedidas}. Bajá la cantidad o elegí otra fecha.`;
+  } else if (cupos !== null && cupos <= 1) {
+    tono = "aviso";
+    texto = "Queda un solo cupo para ese día.";
+  } else if (unidades !== null && unidades <= 8) {
+    tono = "aviso";
+    texto = `Quedan ${unidades} unidades disponibles para ese día.`;
+  }
+
+  if (!tono) return null;
+
+  return (
+    <p
+      className={`mt-2 px-3.5 py-2.5 text-[0.78rem] leading-snug ${
+        tono === "malo"
+          ? "border border-vino/30 bg-vino/[0.06] text-vino"
+          : "border border-laton/40 bg-laton/[0.08] text-carbon"
+      }`}
+    >
+      {texto}
+    </p>
+  );
+}
+
 /** Pantalla de confirmación. El pedido YA está en la base cuando se ve esto. */
 export function Exito({
   id,
