@@ -27,10 +27,25 @@ const crimson = Crimson_Pro({
   style: ["italic"],
 });
 
+const SITIO = "https://sistemachok.vercel.app";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITIO),
   title: "Chok Bake — Postres artesanales",
   description:
     "Cuchareables, tortas personalizadas y mesas frías de postres en Cúcuta. Pide en línea.",
+  openGraph: {
+    title: "Chok Bake — Postres artesanales",
+    description: "Cuchareables, mesas frías y tortas en Cúcuta. Pedí en línea.",
+    url: SITIO,
+    siteName: "Chok Bake",
+    locale: "es_CO",
+    type: "website",
+  },
+};
+
+export const viewport = {
+  themeColor: "#5a1226",
 };
 
 export default function RootLayout({

@@ -12,7 +12,8 @@
       "Bash(python -c \"import reportlab, PIL; print\\('reportlab', reportlab.Version\\); print\\('pillow ok'\\)\")",
       "Bash(python -c \"import PIL; print\\('pillow', PIL.__version__\\)\")",
       "Bash(python -c \"import cairosvg; print\\('cairosvg ok'\\)\")",
-      "Bash(pip --version)"
+      "Bash(pip --version)",
+      "Bash(npm run *)"
     ]
   }
 }
