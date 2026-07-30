@@ -9,6 +9,7 @@ const RUTAS = [
   { href: "/panel", label: "Panel" },
   { href: "/agenda", label: "Agenda" },
   { href: "/pedidos", label: "Pedidos" },
+  { href: "/nuevo-pedido", label: "+ Nuevo" },
 ];
 
 export default function Protegido({ children }: { children: React.ReactNode }) {

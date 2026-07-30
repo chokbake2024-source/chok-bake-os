@@ -92,8 +92,12 @@ function Tarjeta({ p, onCambio }: { p: Pedido; onCambio: () => void }) {
               ["Entrega", p.entrega === "domicilio" ? "Domicilio" : "Recoge en punto"],
               ...(p.direccion ? [["Dirección", p.direccion]] : []),
               ["Pago", p.metodo_pago ?? "—"],
+              ...(Number(p.descuento) > 0
+                ? [["Descuento", "−" + fmt(Number(p.descuento))]]
+                : []),
               ["Anticipo", fmt(Number(p.anticipo))],
               ["Saldo", fmt(Number(p.saldo))],
+              ["Origen", p.origen === "equipo" ? "Cargado por el equipo" : "Web"],
               ...(p.notas ? [["Notas", p.notas]] : []),
             ].map(([k, v]) => (
               <span key={k} className="flex items-baseline justify-between gap-3">

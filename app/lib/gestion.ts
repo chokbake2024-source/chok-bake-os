@@ -24,6 +24,8 @@ export type Pedido = {
   valor: number;
   anticipo: number;
   saldo: number;
+  descuento: number | null;
+  origen: string | null;
   estado: string;
   comprobante_url: string | null;
   created_at: string;
