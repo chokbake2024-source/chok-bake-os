@@ -17,10 +17,17 @@ create table if not exists dias_bloqueados (
   created_at timestamptz not null default now()
 );
 
--- No se puede usar coalesce en un PRIMARY KEY, pero sí en un índice único:
--- así 'todos los servicios' y 'solo tortas' no chocan entre sí.
-create unique index if not exists dias_bloqueados_unico
-  on dias_bloqueados (fecha, coalesce(tipo::text, '*'));
+-- Dos índices parciales en vez de uno con coalesce(tipo::text,'*'):
+-- el cast de enum a text NO es IMMUTABLE (Postgres permite renombrar las
+-- etiquetas de un enum), y un índice exige expresiones inmutables.
+-- Partiéndolo en dos, no hace falta castear nada.
+--   · un cierre por servicio y fecha
+--   · un solo cierre total por fecha
+create unique index if not exists dias_bloqueados_por_tipo
+  on dias_bloqueados (fecha, tipo) where tipo is not null;
+
+create unique index if not exists dias_bloqueados_totales
+  on dias_bloqueados (fecha) where tipo is null;
 
 alter table dias_bloqueados enable row level security;
 
@@ -166,6 +173,10 @@ end $$;
 -- ─── 5. EL RELOJ ────────────────────────────────────────────
 -- pg_cron trabaja en UTC. Colombia es UTC-5 y no tiene horario de verano,
 -- así que 7:00 am de Cúcuta son las 12:00 UTC, todo el año.
+--
+-- Si esta línea da error de permisos, habilitá pg_cron desde el panel:
+--   Supabase → Database → Extensions → buscar "pg_cron" → Enable
+-- y volvé a correr el archivo.
 create extension if not exists pg_cron;
 
 select cron.unschedule('resumen-diario-chok')
