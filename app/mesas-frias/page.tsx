@@ -368,7 +368,7 @@ export default function MesasFrias() {
               sel={entrega === "recoge"}
               onClick={() => setEntrega("recoge")}
               titulo="Recoge"
-              detalle="Bella Vista"
+              detalle="Bellavista"
             />
           </div>
 

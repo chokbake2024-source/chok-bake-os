@@ -10,7 +10,7 @@ export const PAGO = {
 };
 
 export const PUNTO_RECOGIDA =
-  "Av. 4 #56-26, Urbanización Bella Vista, Pinal del Río, Cúcuta";
+  "Av. 4 #26-56, Urbanización Bellavista, Pinal del Río, Cúcuta";
 
 export const CIUDAD = "Cúcuta";
 

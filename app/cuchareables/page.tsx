@@ -416,7 +416,7 @@ export default function Cuchareables() {
               sel={entrega === "recoge"}
               onClick={() => setEntrega("recoge")}
               titulo="Recoge"
-              detalle="Bella Vista"
+              detalle="Bellavista"
             />
           </div>
 
