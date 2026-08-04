@@ -13,7 +13,7 @@
 do $$
 declare
   -- 👇 Production URL del webhook del workflow "Resumen diario"
-  v_url text := 'https://TU-INSTANCIA.app.n8n.cloud/webhook/chok-resumen';
+  v_url text := 'https://servicechok.app.n8n.cloud/webhook/chok-resumen';
   v_id  uuid;
 begin
   if v_url !~ '^https://' then

@@ -7,6 +7,8 @@ export type Producto = {
   unidad: string;
   detalle: string | null;
   slots: number;
+  /** Grupo de `extras` que este producto ofrece como opciones. */
+  grupo_extras: string | null;
   orden: number;
 };
 

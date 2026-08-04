@@ -14,7 +14,7 @@ import {
   type DatosEntrega,
   type Disponibilidad,
 } from "../lib/pedido";
-import type { Linea, Producto, Reglas, Entrega } from "../lib/tipos";
+import type { Extra, Linea, Producto, Reglas, Entrega } from "../lib/tipos";
 import {
   AvisoFecha,
   Cabecera,
@@ -29,10 +29,13 @@ import {
 
 export default function MesasFrias() {
   const [productos, setProductos] = useState<Producto[]>([]);
+  const [extras, setExtras] = useState<Extra[]>([]);
   const [reglas, setReglas] = useState<Reglas | null>(null);
   const [cargaErr, setCargaErr] = useState<string | null>(null);
 
   const [cant, setCant] = useState<Record<string, number>>({});
+  /** Opciones elegidas por producto: { 'MF-SHOTS': ['SH-LIMON', …] } */
+  const [opciones, setOpciones] = useState<Record<string, string[]>>({});
   const [cliente, setCliente] = useState("");
   const [telefono, setTelefono] = useState("");
   const [entrega, setEntrega] = useState<Entrega | "">("");
@@ -51,6 +54,7 @@ export default function MesasFrias() {
   useEffect(() => {
     cargarCatalogo("mesa_fria").then((c) => {
       setProductos(c.productos);
+      setExtras(c.extras);
       setReglas(c.reglas);
       setCargaErr(c.error);
     });
@@ -74,11 +78,15 @@ export default function MesasFrias() {
         .map((p) => ({
           key: p.id,
           producto: p,
-          extras: [],
+          // Los sabores no cambian el precio; viajan para que la cocina
+          // sepa qué preparar.
+          extras: (opciones[p.id] ?? [])
+            .map((id) => extras.find((e) => e.id === id))
+            .filter((e): e is Extra => !!e),
           cantidad: cant[p.id],
           precioUnit: p.precio,
         })),
-    [productos, cant]
+    [productos, cant, opciones, extras]
   );
 
   const total = totalCarrito(lineas);
@@ -98,11 +106,32 @@ export default function MesasFrias() {
       const nuevo = actual === 0 && delta > 0 ? MINIMO : actual + delta;
       if (nuevo <= 0) {
         const { [id]: _quitado, ...resto } = c;
+        setOpciones((o) => {
+          const { [id]: _sinOpciones, ...restoOp } = o;
+          return restoOp;
+        });
         return resto;
       }
       return { ...c, [id]: Math.min(nuevo, 500) };
     });
   }
+
+  function toggleOpcion(productoId: string, extraId: string) {
+    setOpciones((o) => {
+      const actual = o[productoId] ?? [];
+      return {
+        ...o,
+        [productoId]: actual.includes(extraId)
+          ? actual.filter((x) => x !== extraId)
+          : [...actual, extraId],
+      };
+    });
+  }
+
+  /** Productos que ofrecen opciones y todavía no tienen ninguna marcada. */
+  const sinOpciones = lineas.filter(
+    (l) => l.producto.grupo_extras && l.extras.length === 0
+  );
 
   async function enviar() {
     setErr("");
@@ -112,6 +141,10 @@ export default function MesasFrias() {
         `Mínimo ${MINIMO} unidades por producto. Ajustá: ${bajoMinimo
           .map((l) => l.producto.nombre)
           .join(", ")}.`
+      );
+    if (sinOpciones.length)
+      return setErr(
+        `Elegí el sabor de: ${sinOpciones.map((l) => l.producto.nombre).join(", ")}.`
       );
     if (!entrega) return setErr("Indicá si es domicilio o si recogés.");
     if (!cliente.trim()) return setErr("Escribí tu nombre.");
@@ -231,6 +264,40 @@ export default function MesasFrias() {
                   <span className="font-mono text-[0.78rem] text-vino-m">
                     {fmt(p.precio * n)}
                   </span>
+                </div>
+              )}
+
+              {n > 0 && p.grupo_extras && (
+                <div className="mt-3 border-l border-laton/40 pl-3">
+                  <span className="rotulo block">
+                    Sabores · elegí uno o varios
+                  </span>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {extras
+                      .filter((e) => e.grupo === p.grupo_extras)
+                      .map((e) => {
+                        const sel = (opciones[p.id] ?? []).includes(e.id);
+                        return (
+                          <button
+                            key={e.id}
+                            type="button"
+                            onClick={() => toggleOpcion(p.id, e.id)}
+                            className={`border px-2.5 py-1.5 text-[0.74rem] transition ${
+                              sel
+                                ? "border-vino bg-vino/[0.07] text-vino"
+                                : "border-carbon/15 bg-perga/60 text-carbon hover:border-vino/40"
+                            }`}
+                          >
+                            {e.nombre}
+                          </button>
+                        );
+                      })}
+                  </div>
+                  {(opciones[p.id] ?? []).length === 0 && (
+                    <span className="mt-2 block text-[0.7rem] text-vino">
+                      Elegí al menos un sabor.
+                    </span>
+                  )}
                 </div>
               )}
             </div>
